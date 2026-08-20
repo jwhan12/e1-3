@@ -1,6 +1,5 @@
 import json
 import math
-import os
 import re
 import time
 
@@ -465,9 +464,7 @@ def main():
     if mode == "1":
         run_user_input_mode()
     else:
-        base_dir = os.path.dirname(os.path.abspath(__file__))
-        data_path = os.path.join(base_dir, "data.json")
-        run_json_mode(data_path)
+        run_json_mode("./data.json")
 
 
 if __name__ == "__main__":
