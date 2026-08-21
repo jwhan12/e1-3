@@ -129,15 +129,25 @@ def read_matrix(name, size=3):
             print("처음부터 다시 입력해 주세요.\n")
 
 
-def print_performance_table(sizes):
-    """각 행렬 크기의 평균 MAC 시간과 연산 횟수를 출력한다."""
-    print("크기(N×N)    평균 시간(ms)    연산 횟수(N²)")
-    print("------------------------------------------")
+def measure_performance(sizes):
+    """각 행렬 크기의 평균 MAC 시간을 측정한다."""
+    results = []
 
-    # 전달받은 모든 크기에 대해 같은 방식으로 성능을 측정한다.
     for size in sizes:
         matrix = [[1.0] * size for _ in range(size)]
         average_ms = average_mac_time(matrix, matrix)
+        results.append((size, average_ms))
+
+    return results
+
+
+def print_performance_table(results):
+    """측정된 평균 MAC 시간과 연산 횟수를 출력한다."""
+    print("크기(N×N)    평균 시간(ms)    연산 횟수(N²)")
+    print("------------------------------------------")
+
+    # 측정 결과에 행렬 크기별 연산 횟수를 더해 출력한다.
+    for size, average_ms in results:
         operation_count = size * size
 
         print(f"{size}×{size}    {average_ms:.6f}    {operation_count}")
@@ -381,7 +391,8 @@ def run_user_input_mode():
         print(f"판정: {decision}")
 
     print_section(4, f"성능 분석 (평균/{REPEAT_COUNT}회)")
-    print_performance_table((3,))
+    performance_results = [(3, average_ms)]
+    print_performance_table(performance_results)
 
 
 def run_json_mode(file_path):
@@ -416,7 +427,8 @@ def run_json_mode(file_path):
         print_case_result(result)
 
     print_section(3, f"성능 분석 (평균/{REPEAT_COUNT}회)")
-    print_performance_table((3, 5, 13, 25))
+    performance_results = measure_performance((3, 5, 13, 25))
+    print_performance_table(performance_results)
 
     # 결과 목록을 순회하며 통과한 케이스의 수를 계산한다.
     passed = 0
