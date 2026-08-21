@@ -11,7 +11,7 @@ REQUIRED_JSON_SIZES = (5, 13, 25)
 def print_section(number, title):
     print()
     print("#---------------------------------------")
-    print("# [{}] {}".format(number, title))
+    print(f"# [{number}] {title}")
     print("#---------------------------------------")
 
 
@@ -24,7 +24,7 @@ def normalize_label(value):
     if text == "x":
         return "X"
 
-    raise ValueError("지원하지 않는 라벨: {!r}".format(value))
+    raise ValueError(f"지원하지 않는 라벨: {value}")
 
 
 def validate_square_matrix(matrix, expected_size):
@@ -33,29 +33,21 @@ def validate_square_matrix(matrix, expected_size):
         return False, "2차원 배열(list)이 아닙니다."
 
     if len(matrix) != expected_size:
-        return False, "행 수가 {}가 아닙니다. (현재 {})".format(
-            expected_size, len(matrix)
-        )
+        return False, f"행 수가 {expected_size}가 아닙니다. (현재 {len(matrix)})"
 
     for row_index, row in enumerate(matrix, start=1):
         if not isinstance(row, list):
-            return False, "{}번째 행이 배열(list)이 아닙니다.".format(row_index)
+            return False, f"{row_index}번째 행이 배열(list)이 아닙니다."
 
         if len(row) != expected_size:
-            return False, "{}번째 행의 열 수가 {}가 아닙니다. (현재 {})".format(
-                row_index, expected_size, len(row)
-            )
+            return False, f"{row_index}번째 행의 열 수가 {expected_size}가 아닙니다. (현재 {len(row)})"
 
         for col_index, value in enumerate(row, start=1):
             if isinstance(value, bool) or not isinstance(value, (int, float)):
-                return False, "{}행 {}열 값이 숫자가 아닙니다.".format(
-                    row_index, col_index
-                )
+                return False, f"{row_index}행 {col_index}열 값이 숫자가 아닙니다."
 
             if not math.isfinite(float(value)):
-                return False, "{}행 {}열 값이 유한한 숫자가 아닙니다.".format(
-                    row_index, col_index
-                )
+                return False, f"{row_index}행 {col_index}열 값이 유한한 숫자가 아닙니다."
 
     return True, ""
 
@@ -96,7 +88,7 @@ def measure_mac_average(pattern, filter_matrix, repeat_count=REPEAT_COUNT):
 def read_matrix(name, size=3):
     """콘솔에서 size x size 숫자 배열을 입력받고 오류 시 전체 배열을 다시 받는다."""
     while True:
-        print("{} ({}줄 입력, 공백 구분)".format(name, size))
+        print(f"{name} ({size}줄 입력, 공백 구분)")
         matrix = []
         has_error = False
 
@@ -121,9 +113,7 @@ def read_matrix(name, size=3):
             return matrix
 
         print(
-            "입력 형식 오류: 각 줄에 {}개의 숫자를 공백으로 구분해 입력하세요.".format(
-                size
-            )
+            f"입력 형식 오류: 각 줄에 {size}개의 숫자를 공백으로 구분해 입력하세요."
         )
         print("처음부터 다시 입력해 주세요.")
         print()
@@ -144,8 +134,8 @@ def make_cross_pattern(size):
 def format_score(score):
     """정수에 가까운 값은 1자리 소수, 나머지는 읽기 쉬운 유효숫자로 표시한다."""
     if abs(score - round(score)) < EPSILON:
-        return "{:.1f}".format(score)
-    return "{:.16g}".format(score)
+        return f"{score:.1f}"
+    return f"{score:.16g}"
 
 
 def print_performance_table(sizes):
@@ -158,9 +148,7 @@ def print_performance_table(sizes):
         average_ms = measure_mac_average(pattern, filter_matrix, REPEAT_COUNT)
 
         print(
-            "{:>2}×{:<2}      {:>10.6f}      {:>6}".format(
-                size, size, average_ms, size * size
-            )
+            f"{size:>2}×{size:<2}      {average_ms:>10.6f}      {size * size:>6}"
         )
 
 
@@ -178,12 +166,10 @@ def load_json_file(file_path):
         with open(file_path, "r", encoding="utf-8") as file:
             data = json.load(file)
     except FileNotFoundError:
-        raise ValueError("data.json 파일을 찾을 수 없습니다: {}".format(file_path))
+        raise ValueError(f"data.json 파일을 찾을 수 없습니다: {file_path}")
     except json.JSONDecodeError as error:
         raise ValueError(
-            "data.json JSON 문법 오류: line {}, column {}".format(
-                error.lineno, error.colno
-            )
+            f"data.json JSON 문법 오류: line {error.lineno}, column {error.colno}"
         )
 
     if not isinstance(data, dict):
@@ -207,11 +193,11 @@ def prepare_filters(raw_filters):
     errors = {}
 
     for size in REQUIRED_JSON_SIZES:
-        size_key = "size_{}".format(size)
+        size_key = f"size_{size}"
         group = raw_filters.get(size_key)
 
         if not isinstance(group, dict):
-            errors[size] = "{} 필터 객체가 없습니다.".format(size_key)
+            errors[size] = f"{size_key} 필터 객체가 없습니다."
             continue
 
         normalized_group = {}
@@ -226,15 +212,11 @@ def prepare_filters(raw_filters):
 
             valid, reason = validate_square_matrix(matrix, size)
             if not valid:
-                group_error = "{} 필터 크기/값 오류: {}".format(
-                    normalized_label, reason
-                )
+                group_error = f"{normalized_label} 필터 크기/값 오류: {reason}"
                 break
 
             if normalized_label in normalized_group:
-                group_error = "정규화 후 필터 라벨이 중복됩니다: {}".format(
-                    normalized_label
-                )
+                group_error = f"정규화 후 필터 라벨이 중복됩니다: {normalized_label}"
                 break
 
             normalized_group[normalized_label] = matrix
@@ -247,9 +229,7 @@ def prepare_filters(raw_filters):
             label for label in ("Cross", "X") if label not in normalized_group
         ]
         if missing_labels:
-            errors[size] = "필수 필터 라벨이 없습니다: {}".format(
-                ", ".join(missing_labels)
-            )
+            errors[size] = f"필수 필터 라벨이 없습니다: {', '.join(missing_labels)}"
             continue
 
         prepared[size] = normalized_group
@@ -291,7 +271,7 @@ def analyze_json_patterns(patterns, filters, filter_errors):
         try:
             expected = normalize_label(case_data["expected"])
         except ValueError as error:
-            result["reason"] = "expected 라벨 오류: {}".format(error)
+            result["reason"] = f"expected 라벨 오류: {error}"
             results.append(result)
             continue
 
@@ -299,13 +279,13 @@ def analyze_json_patterns(patterns, filters, filter_errors):
 
         valid, reason = validate_square_matrix(case_data["input"], size)
         if not valid:
-            result["reason"] = "패턴 크기/값 오류: {}".format(reason)
+            result["reason"] = f"패턴 크기/값 오류: {reason}"
             results.append(result)
             continue
 
         if size not in filters:
             result["reason"] = filter_errors.get(
-                size, "size_{}에 대응하는 필터가 없습니다.".format(size)
+                size, f"size_{size}에 대응하는 필터가 없습니다."
             )
             results.append(result)
             continue
@@ -326,13 +306,10 @@ def analyze_json_patterns(patterns, filters, filter_errors):
             result["reason"] = "판정과 expected가 일치합니다."
         elif prediction == "UNDECIDED":
             result["reason"] = (
-                "두 점수 차이가 epsilon({})보다 작아 UNDECIDED로 판정되었습니다."
-                .format(EPSILON)
+                f"두 점수 차이가 epsilon({EPSILON})보다 작아 UNDECIDED로 판정되었습니다."
             )
         else:
-            result["reason"] = "판정 {}와 expected {}가 다릅니다.".format(
-                prediction, expected
-            )
+            result["reason"] = f"판정 {prediction}와 expected {expected}가 다릅니다."
 
         results.append(result)
 
@@ -358,20 +335,18 @@ def run_user_input_mode():
     average_ms = measure_mac_average(pattern, filter_a, REPEAT_COUNT)
 
     print_section(3, "MAC 결과")
-    print("A 점수: {}".format(format_score(score_a)))
-    print("B 점수: {}".format(format_score(score_b)))
+    print(f"A 점수: {format_score(score_a)}")
+    print(f"B 점수: {format_score(score_b)}")
     print(
-        "연산 시간(평균/{}회): {:.6f} ms".format(
-            REPEAT_COUNT, average_ms
-        )
+        f"연산 시간(평균/{REPEAT_COUNT}회): {average_ms:.6f} ms"
     )
 
     if decision == "UNDECIDED":
-        print("판정: 판정 불가 (|A-B| < {})".format(EPSILON))
+        print(f"판정: 판정 불가 (|A-B| < {EPSILON})")
     else:
-        print("판정: {}".format(decision))
+        print(f"판정: {decision}")
 
-    print_section(4, "성능 분석 (평균/{}회)".format(REPEAT_COUNT))
+    print_section(4, f"성능 분석 (평균/{REPEAT_COUNT}회)")
     print_performance_table((3,))
 
 
@@ -380,7 +355,7 @@ def run_json_mode(file_path):
         data = load_json_file(file_path)
     except ValueError as error:
         print()
-        print("[오류] {}".format(error))
+        print(f"[오류] {error}")
         return
 
     filters, filter_errors = prepare_filters(data["filters"])
@@ -388,40 +363,34 @@ def run_json_mode(file_path):
     print_section(1, "필터 로드")
     for size in REQUIRED_JSON_SIZES:
         if size in filters:
-            print("✓ size_{} 필터 로드 완료 (Cross, X)".format(size))
+            print(f"✓ size_{size} 필터 로드 완료 (Cross, X)")
         else:
-            print("✗ size_{} 필터 로드 실패: {}".format(
-                size, filter_errors.get(size, "알 수 없는 오류")
-            ))
+            print(f"✗ size_{size} 필터 로드 실패: {filter_errors.get(size, '알 수 없는 오류')}")
 
     print_section(2, "패턴 분석 (라벨 정규화 적용)")
     results = analyze_json_patterns(data["patterns"], filters, filter_errors)
 
     for result in results:
-        print("--- {} ---".format(result["case_id"]))
+        print(f'--- {result["case_id"]} ---')
 
         if result["cross_score"] is not None:
-            print("Cross 점수: {}".format(format_score(result["cross_score"])))
-            print("X 점수: {}".format(format_score(result["x_score"])))
+            print(f'Cross 점수: {format_score(result["cross_score"])}')
+            print(f'X 점수: {format_score(result["x_score"])}')
             print(
-                "판정: {} | expected: {} | {}".format(
-                    result["prediction"], result["expected"], result["status"]
-                )
+                f'판정: {result["prediction"]} | expected: {result["expected"]} | {result["status"]}'
             )
         else:
             expected_text = result["expected"] or "UNKNOWN"
             print(
-                "판정: UNAVAILABLE | expected: {} | FAIL".format(
-                    expected_text
-                )
+                f"판정: UNAVAILABLE | expected: {expected_text} | FAIL"
             )
 
         if result["status"] == "FAIL":
-            print("사유: {}".format(result["reason"]))
+            print(f'사유: {result["reason"]}')
 
         print()
 
-    print_section(3, "성능 분석 (평균/{}회)".format(REPEAT_COUNT))
+    print_section(3, f"성능 분석 (평균/{REPEAT_COUNT}회)")
     print_performance_table((3, 5, 13, 25))
 
     total = len(results)
@@ -429,15 +398,15 @@ def run_json_mode(file_path):
     failed = total - passed
 
     print_section(4, "결과 요약")
-    print("전체 테스트 수: {}".format(total))
-    print("통과 수: {}".format(passed))
-    print("실패 수: {}".format(failed))
+    print(f"전체 테스트 수: {total}")
+    print(f"통과 수: {passed}")
+    print(f"실패 수: {failed}")
 
     if failed:
         print("실패 케이스:")
         for result in results:
             if result["status"] == "FAIL":
-                print("- {}: {}".format(result["case_id"], result["reason"]))
+                print(f'- {result["case_id"]}: {result["reason"]}')
     else:
         print("실패 케이스: 없음")
 
